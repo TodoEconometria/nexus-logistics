@@ -1,14 +1,22 @@
-# Nexus Logistics
+<p align="center">
+  <img src="https://avatars.githubusercontent.com/u/246972497?v=4" width="120" alt="TodoEconometria" />
+</p>
 
-[![Java](https://img.shields.io/badge/Java-21-orange.svg)](https://www.oracle.com/java/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2-brightgreen.svg)](https://spring.io/projects/spring-boot)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue.svg)](https://www.postgresql.org/)
-[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED.svg)](https://docs.docker.com/compose/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+<h1 align="center">Nexus Logistics</h1>
+
+<p align="center">
+  <a href="https://www.oracle.com/java/"><img src="https://img.shields.io/badge/Java-21-orange.svg" alt="Java"></a>
+  <a href="https://spring.io/projects/spring-boot"><img src="https://img.shields.io/badge/Spring%20Boot-3.2-brightgreen.svg" alt="Spring Boot"></a>
+  <a href="https://www.postgresql.org/"><img src="https://img.shields.io/badge/PostgreSQL-15-blue.svg" alt="PostgreSQL"></a>
+  <a href="https://docs.docker.com/compose/"><img src="https://img.shields.io/badge/Docker-Compose-2496ED.svg" alt="Docker"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"></a>
+</p>
 
 Sistema de gestion logistica construido con **Spring Boot 3**, **JPA/Hibernate** y **PostgreSQL**.
 
-Proyecto companion del libro **"Arquitectura de Sistemas Enterprise: El Arquitecto en la Era de la IA"** — Certificacion IFCD0014.
+Proyecto companion del libro **"Arquitectura de Sistemas Enterprise: El Arquitecto en la Era de la IA"**.
+
+Compatible con la **Certificacion Profesional IFCD0014** (Nivel 4) del [SEPE](https://www.sepe.es/) — Servicio Publico de Empleo Estatal de Espana.
 
 ---
 
