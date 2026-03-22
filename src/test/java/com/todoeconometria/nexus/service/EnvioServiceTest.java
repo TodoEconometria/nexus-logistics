@@ -1,10 +1,6 @@
 // (c) 2026 Juan Marcelo Gutierrez Miranda (@TodoEconometria)
 // Proyecto Nexus Logistics - Material companion del libro
 // Curso IFCD0014: Spring Boot + Hibernate
-//
-// TESTS: Estos tests DEBEN PASAR cuando completes la implementacion de EnvioService.
-// Si alguno falla, revisa tu implementacion en el servicio correspondiente.
-// Capitulo 19A: "Testing del Servicio"
 package com.todoeconometria.nexus.service;
 
 import com.todoeconometria.nexus.exception.BusinessRuleException;
@@ -47,10 +43,6 @@ class EnvioServiceTest {
 
     @Test
     void crearEnvio_clienteExiste_retornaEnvioConCosto() {
-        // Este test valida que:
-        // - El envio se crea con tracking number generado
-        // - El costo se calcula como pesoKg * TARIFA_POR_KG (5.0 * 2.50 = 12.50)
-        // - El estado inicial es REGISTRADO
         when(clienteRepository.findById(1L)).thenReturn(Optional.of(clienteTest));
         when(envioRepository.save(any(Envio.class)))
             .thenAnswer(invocation -> invocation.getArgument(0));
@@ -66,8 +58,6 @@ class EnvioServiceTest {
 
     @Test
     void crearEnvio_clienteNoExiste_lanzaExcepcion() {
-        // Este test valida que se lanza ResourceNotFoundException
-        // cuando el cliente no existe en la base de datos
         when(clienteRepository.findById(99L)).thenReturn(Optional.empty());
 
         assertThrows(ResourceNotFoundException.class, () ->
@@ -76,8 +66,6 @@ class EnvioServiceTest {
 
     @Test
     void actualizarEstado_envioEntregado_noPuedeTransicionar() {
-        // Este test valida la maquina de estados:
-        // Un envio ENTREGADO no puede cambiar a ningun otro estado
         Envio envioEntregado = new Envio(
             "Madrid", "Barcelona", new BigDecimal("2.0"), clienteTest);
         envioEntregado.setId(1L);

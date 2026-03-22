@@ -1,9 +1,6 @@
 // (c) 2026 Juan Marcelo Gutierrez Miranda (@TodoEconometria)
 // Proyecto Nexus Logistics - Material companion del libro
 // Curso IFCD0014: Spring Boot + Hibernate
-//
-// ESQUELETO: Implementar CRUD de clientes con validaciones de negocio.
-// Capitulo 19B: "Servicios de Negocio"
 package com.todoeconometria.nexus.service;
 
 import com.todoeconometria.nexus.exception.BusinessRuleException;
@@ -28,28 +25,27 @@ public class ClienteService {
         this.envioRepository = envioRepository;
     }
 
-    /**
-     * Crea un nuevo cliente validando unicidad de email.
-     */
     public Cliente crear(Cliente cliente) {
-        // TODO: Implementar creacion de cliente
-        // 1. Verificar que no exista otro cliente con el mismo email (existsByEmail)
-        // 2. Crear nuevo objeto Cliente con nombre y email
-        // 3. Asignar telefono y direccion
-        // 4. Guardar y retornar
-        throw new UnsupportedOperationException("TODO: Implementar crear");
+        if (clienteRepository.existsByEmail(cliente.getEmail())) {
+            throw new BusinessRuleException(
+                "Ya existe un cliente con el email: " + cliente.getEmail());
+        }
+        Cliente nuevo = new Cliente(cliente.getNombre(), cliente.getEmail());
+        nuevo.setTelefono(cliente.getTelefono());
+        nuevo.setDireccion(cliente.getDireccion());
+        return clienteRepository.save(nuevo);
     }
 
     @Transactional(readOnly = true)
     public Cliente obtenerPorId(Long id) {
-        // TODO: Buscar por ID, lanzar ResourceNotFoundException si no existe
-        throw new UnsupportedOperationException("TODO: Implementar obtenerPorId");
+        return clienteRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Cliente", "id", id));
     }
 
     @Transactional(readOnly = true)
     public Cliente obtenerPorEmail(String email) {
-        // TODO: Buscar por email, lanzar ResourceNotFoundException si no existe
-        throw new UnsupportedOperationException("TODO: Implementar obtenerPorEmail");
+        return clienteRepository.findByEmail(email)
+            .orElseThrow(() -> new ResourceNotFoundException("Cliente", "email", email));
     }
 
     @Transactional(readOnly = true)
@@ -57,26 +53,28 @@ public class ClienteService {
         return clienteRepository.findAll();
     }
 
-    /**
-     * Actualiza un cliente existente.
-     * Si el email cambia, verificar que el nuevo email no este en uso.
-     */
     public Cliente actualizar(Long id, Cliente datosActualizados) {
-        // TODO: Implementar actualizacion con validacion de email unico
-        // 1. Obtener el cliente existente
-        // 2. Si el email cambio, verificar que el nuevo no este en uso
-        // 3. Actualizar campos: nombre, email, telefono, direccion
-        // 4. Guardar y retornar
-        throw new UnsupportedOperationException("TODO: Implementar actualizar");
+        Cliente cliente = obtenerPorId(id);
+        if (!cliente.getEmail().equals(datosActualizados.getEmail())) {
+            if (clienteRepository.existsByEmail(datosActualizados.getEmail())) {
+                throw new BusinessRuleException(
+                    "Ya existe un cliente con el email: " + datosActualizados.getEmail());
+            }
+        }
+        cliente.setNombre(datosActualizados.getNombre());
+        cliente.setEmail(datosActualizados.getEmail());
+        cliente.setTelefono(datosActualizados.getTelefono());
+        cliente.setDireccion(datosActualizados.getDireccion());
+        return clienteRepository.save(cliente);
     }
 
-    /**
-     * Elimina un cliente. No se puede eliminar si tiene envios registrados.
-     */
     public void eliminar(Long id) {
-        // TODO: Implementar eliminacion con restriccion de integridad
-        // Verificar que el cliente no tenga envios antes de eliminar
-        // Pista: usar envioRepository.findByClienteId(id)
-        throw new UnsupportedOperationException("TODO: Implementar eliminar");
+        Cliente cliente = obtenerPorId(id);
+        if (!envioRepository.findByClienteId(id).isEmpty()) {
+            throw new BusinessRuleException(
+                "No se puede eliminar el cliente '" + cliente.getNombre()
+                + "' porque tiene envios registrados");
+        }
+        clienteRepository.deleteById(id);
     }
 }

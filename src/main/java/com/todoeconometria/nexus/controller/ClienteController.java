@@ -1,9 +1,6 @@
 // (c) 2026 Juan Marcelo Gutierrez Miranda (@TodoEconometria)
 // Proyecto Nexus Logistics - Material companion del libro
 // Curso IFCD0014: Spring Boot + Hibernate
-//
-// ESQUELETO: Implementar CRUD REST para clientes.
-// Capitulo 19B: "Controladores REST Adicionales"
 package com.todoeconometria.nexus.controller;
 
 import com.todoeconometria.nexus.model.Cliente;
@@ -28,21 +25,47 @@ public class ClienteController {
         this.clienteRepository = clienteRepository;
     }
 
-    // TODO: Implementar GET /api/clientes (listar todos)
-    // Este controller usa el repositorio directamente (sin service)
+    @GetMapping
+    @Operation(summary = "Listar todos los clientes")
+    public ResponseEntity<List<Cliente>> listarTodos() {
+        return ResponseEntity.ok(clienteRepository.findAll());
+    }
 
-    // TODO: Implementar GET /api/clientes/{id} (obtener por ID)
-    // Lanzar ResourceNotFoundException si no existe
+    @GetMapping("/{id}")
+    @Operation(summary = "Obtener cliente por ID")
+    public ResponseEntity<Cliente> obtenerPorId(@PathVariable Long id) {
+        Cliente cliente = clienteRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Cliente", "id", id));
+        return ResponseEntity.ok(cliente);
+    }
 
-    // TODO: Implementar POST /api/clientes (crear cliente)
-    // Usar @Valid @RequestBody Cliente
-    // Importante: asignar id = null para evitar inyeccion de ID
-    // Retornar HttpStatus.CREATED
+    @PostMapping
+    @Operation(summary = "Crear un nuevo cliente")
+    public ResponseEntity<Cliente> crear(@Valid @RequestBody Cliente cliente) {
+        cliente.setId(null);
+        return ResponseEntity.status(HttpStatus.CREATED).body(clienteRepository.save(cliente));
+    }
 
-    // TODO: Implementar PUT /api/clientes/{id} (actualizar cliente)
-    // Buscar existente, actualizar campos: nombre, email, telefono, direccion
+    @PutMapping("/{id}")
+    @Operation(summary = "Actualizar un cliente existente")
+    public ResponseEntity<Cliente> actualizar(
+            @PathVariable Long id, @Valid @RequestBody Cliente datosActualizados) {
+        Cliente cliente = clienteRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Cliente", "id", id));
+        cliente.setNombre(datosActualizados.getNombre());
+        cliente.setEmail(datosActualizados.getEmail());
+        cliente.setTelefono(datosActualizados.getTelefono());
+        cliente.setDireccion(datosActualizados.getDireccion());
+        return ResponseEntity.ok(clienteRepository.save(cliente));
+    }
 
-    // TODO: Implementar DELETE /api/clientes/{id} (eliminar cliente)
-    // Verificar existencia antes de eliminar
-    // Retornar HttpStatus 204 No Content
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Eliminar un cliente")
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        if (!clienteRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Cliente", "id", id);
+        }
+        clienteRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -12,52 +12,11 @@ Proyecto companion del libro **"Arquitectura de Sistemas Enterprise: El Arquitec
 
 ---
 
-## Este repositorio es un esqueleto
+## Rama `completo`
 
-Esta rama (`main`) contiene la **estructura completa** del proyecto pero con la logica de negocio pendiente de implementar. Los archivos marcados con `TODO` indican donde debes escribir tu codigo.
+Esta rama contiene la **implementacion completa y funcional** del Proyecto Nexus, incluyendo toda la logica de negocio, controladores REST, seguridad JWT y scripts de analitica Python.
 
-**Para obtener la implementacion completa**, consigue el libro:
-
-- **Amazon** (paperback + Kindle): [enlace pendiente]
-- **Gumroad** (PDF + codigo completo): [enlace pendiente]
-
-El libro explica paso a paso cada linea de codigo, con la teoria detras de cada decision arquitectonica.
-
----
-
-## Que esta incluido
-
-| Capa | Estado | Archivos |
-|------|--------|----------|
-| Entidades JPA | Completo | 5 entidades + 2 enums |
-| Repositorios Spring Data | Completo | 5 repositorios con JPQL |
-| DTOs | Completo | 5 objetos de transferencia |
-| Excepciones | Completo | 3 clases de manejo de errores |
-| Seguridad JWT | Completo | Filter + Provider + Config |
-| OpenAPI/Swagger | Completo | Configuracion lista |
-| Docker + CI/CD | Completo | Dockerfile, Compose, GitHub Actions |
-| Python Analytics | Completo | 4 scripts de analisis |
-| **Servicios** | **TODO** | **4 clases por implementar** |
-| **Controladores** | **TODO** | **5 clases por implementar** |
-| **Tests** | **Incluidos** | **Pasan cuando implementes los servicios** |
-
-## Que debes implementar
-
-### Servicios (logica de negocio)
-- `EnvioService.java` — Creacion de envios, maquina de estados, asignacion a rutas
-- `ClienteService.java` — CRUD con validacion de email unico
-- `RutaService.java` — Gestion de rutas, completar ruta, asignacion de vehiculos
-- `AuthService.java` — Registro y login con JWT + BCrypt
-
-### Controladores (endpoints REST)
-- `EnvioController.java` — 8 endpoints: CRUD + PATCH estado/ruta
-- `ClienteController.java` — 5 endpoints: CRUD completo
-- `RutaController.java` — 8 endpoints: CRUD + completar + asignar vehiculo
-- `AlmacenController.java` — 7 endpoints: CRUD + filtros
-- `AuthController.java` — 2 endpoints: login + register
-
-### Tests de validacion
-Los tests en `EnvioServiceTest.java` estan completos y **deben pasar** cuando termines la implementacion. Usalos como guia.
+Si buscas la version esqueleto con TODOs para practicar, cambia a la rama `main`.
 
 ---
 
@@ -74,7 +33,7 @@ Los tests en `EnvioServiceTest.java` estan completos y **deben pasar** cuando te
 ## Inicio rapido
 
 ```bash
-git clone https://github.com/TodoEconometria/nexus-logistics.git
+git clone -b completo https://github.com/TodoEconometria/nexus-logistics.git
 cd nexus-logistics
 docker-compose up -d --build
 
@@ -91,17 +50,43 @@ nexus-logistics/
 ├── src/main/java/com/todoeconometria/nexus/
 │   ├── model/          # Entidades JPA (Envio, Cliente, Ruta, Almacen, Vehiculo)
 │   ├── repository/     # Repositorios Spring Data con JPQL
-│   ├── service/        # TODO: Logica de negocio
-│   ├── controller/     # TODO: Endpoints REST
+│   ├── service/        # Logica de negocio (4 servicios)
+│   ├── controller/     # Endpoints REST (5 controladores)
 │   ├── dto/            # Objetos de transferencia
 │   ├── security/       # JWT (generacion, validacion, filtro)
 │   ├── config/         # SecurityConfig, OpenApiConfig
 │   └── exception/      # Manejo global de errores
 ├── analytics/          # Scripts Python de analitica
+│   ├── nexus_analytics.py          # Analisis exploratorio
+│   ├── nexus_temporal.py           # Series temporales y eficiencia
+│   ├── nexus_dashboard_streamlit.py # Dashboard interactivo
+│   └── nexus_sqlalchemy.py         # Acceso directo a PostgreSQL
 ├── docker-compose.yml  # PostgreSQL + Adminer + API
 ├── Dockerfile          # Multi-stage build (Maven + JRE Alpine)
 └── pom.xml             # Dependencias Maven
 ```
+
+## Entidades del dominio
+
+- **Envio** — Paquete con tracking, origen/destino, peso, costo, maquina de estados (REGISTRADO -> EN_ALMACEN -> EN_TRANSITO -> ENTREGADO/DEVUELTO)
+- **Cliente** — Usuario con email unico, relacionado con sus envios
+- **Ruta** — Ruta de distribucion con fecha programada, vehiculo asignado y lista de envios
+- **Almacen** — Centro de distribucion con capacidad maxima
+- **Vehiculo** — Flota con matricula, tipo (MOTO/FURGONETA/CAMION) y estado de disponibilidad
+
+## Endpoints principales
+
+| Metodo | Ruta | Descripcion |
+|--------|------|-------------|
+| GET | `/api/envios` | Listar envios (paginado) |
+| POST | `/api/envios` | Crear envio |
+| PATCH | `/api/envios/{id}/estado` | Actualizar estado |
+| PATCH | `/api/envios/{id}/ruta` | Asignar a ruta |
+| GET | `/api/clientes` | Listar clientes |
+| POST | `/api/rutas` | Crear ruta |
+| PATCH | `/api/rutas/{id}/completar` | Completar ruta |
+| POST | `/api/auth/login` | Obtener JWT |
+| POST | `/api/auth/register` | Registrar usuario |
 
 ---
 

@@ -1,9 +1,6 @@
 // (c) 2026 Juan Marcelo Gutierrez Miranda (@TodoEconometria)
 // Proyecto Nexus Logistics - Material companion del libro
 // Curso IFCD0014: Spring Boot + Hibernate
-//
-// ESQUELETO: Implementar endpoints de autenticacion JWT.
-// Capitulo 19C: "Seguridad con JWT"
 package com.todoeconometria.nexus.controller;
 
 import com.todoeconometria.nexus.dto.AuthRequestDTO;
@@ -27,13 +24,15 @@ public class AuthController {
         this.authService = authService;
     }
 
-    // TODO: Implementar POST /api/auth/login
-    // Recibir @Valid @RequestBody AuthRequestDTO
-    // Delegar a authService.login()
-    // Retornar ResponseEntity con el AuthResponseDTO (contiene token JWT)
+    @PostMapping("/login")
+    @Operation(summary = "Autenticar usuario y obtener token JWT")
+    public ResponseEntity<AuthResponseDTO> login(@Valid @RequestBody AuthRequestDTO request) {
+        return ResponseEntity.ok(authService.login(request));
+    }
 
-    // TODO: Implementar POST /api/auth/register
-    // Recibir @Valid @RequestBody AuthRequestDTO
-    // Delegar a authService.registrar()
-    // Retornar HttpStatus.CREATED con AuthResponseDTO
+    @PostMapping("/register")
+    @Operation(summary = "Registrar nuevo usuario y obtener token JWT")
+    public ResponseEntity<AuthResponseDTO> registrar(@Valid @RequestBody AuthRequestDTO request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(authService.registrar(request));
+    }
 }

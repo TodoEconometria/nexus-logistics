@@ -1,9 +1,6 @@
 // (c) 2026 Juan Marcelo Gutierrez Miranda (@TodoEconometria)
 // Proyecto Nexus Logistics - Material companion del libro
 // Curso IFCD0014: Spring Boot + Hibernate
-//
-// ESQUELETO: Implementar endpoints REST para rutas de distribucion.
-// Capitulo 19B: "Controladores REST Adicionales"
 package com.todoeconometria.nexus.controller;
 
 import com.todoeconometria.nexus.model.Ruta;
@@ -28,25 +25,60 @@ public class RutaController {
         this.rutaService = rutaService;
     }
 
-    // TODO: Implementar GET /api/rutas (listar todas)
+    @GetMapping
+    @Operation(summary = "Listar todas las rutas")
+    public ResponseEntity<List<Ruta>> listarTodas() {
+        return ResponseEntity.ok(rutaService.listarTodas());
+    }
 
-    // TODO: Implementar GET /api/rutas/{id} (obtener por ID)
+    @GetMapping("/{id}")
+    @Operation(summary = "Obtener ruta por ID")
+    public ResponseEntity<Ruta> obtenerPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(rutaService.obtenerPorId(id));
+    }
 
-    // TODO: Implementar GET /api/rutas/{id}/envios (obtener ruta con envios cargados)
-    // Usa obtenerConEnvios del servicio (JOIN FETCH para evitar N+1)
+    @GetMapping("/{id}/envios")
+    @Operation(summary = "Obtener ruta con todos sus envios cargados")
+    public ResponseEntity<Ruta> obtenerConEnvios(@PathVariable Long id) {
+        return ResponseEntity.ok(rutaService.obtenerConEnvios(id));
+    }
 
-    // TODO: Implementar GET /api/rutas/pendientes (listar no completadas)
+    @GetMapping("/pendientes")
+    @Operation(summary = "Listar rutas pendientes ordenadas por fecha")
+    public ResponseEntity<List<Ruta>> listarPendientes() {
+        return ResponseEntity.ok(rutaService.listarPendientes());
+    }
 
-    // TODO: Implementar GET /api/rutas/fecha/{fecha} (filtrar por fecha programada)
-    // Pista: usar @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) en el @PathVariable
+    @GetMapping("/fecha/{fecha}")
+    @Operation(summary = "Listar rutas programadas para una fecha especifica")
+    public ResponseEntity<List<Ruta>> listarPorFecha(
+            @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fecha) {
+        return ResponseEntity.ok(rutaService.listarPorFecha(fecha));
+    }
 
-    // TODO: Implementar POST /api/rutas (crear ruta)
-    // Parametros: nombre, origen, destino, fechaProgramada, distanciaKm (opcional), vehiculoId (opcional)
-    // Retornar HttpStatus.CREATED
+    @PostMapping
+    @Operation(summary = "Crear una nueva ruta de distribucion")
+    public ResponseEntity<Ruta> crear(
+            @RequestParam String nombre,
+            @RequestParam String origen,
+            @RequestParam String destino,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaProgramada,
+            @RequestParam(required = false) Double distanciaKm,
+            @RequestParam(required = false) Long vehiculoId) {
+        Ruta nueva = rutaService.crear(nombre, origen, destino, fechaProgramada, distanciaKm, vehiculoId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(nueva);
+    }
 
-    // TODO: Implementar PATCH /api/rutas/{id}/completar (completar ruta)
-    // Esta operacion entrega todos los envios y libera el vehiculo
+    @PatchMapping("/{id}/completar")
+    @Operation(summary = "Marcar ruta como completada (entrega todos los envios)")
+    public ResponseEntity<Ruta> completar(@PathVariable Long id) {
+        return ResponseEntity.ok(rutaService.completar(id));
+    }
 
-    // TODO: Implementar PATCH /api/rutas/{id}/vehiculo (asignar vehiculo)
-    // Parametro: vehiculoId
+    @PatchMapping("/{id}/vehiculo")
+    @Operation(summary = "Asignar un vehiculo a una ruta")
+    public ResponseEntity<Ruta> asignarVehiculo(
+            @PathVariable Long id, @RequestParam Long vehiculoId) {
+        return ResponseEntity.ok(rutaService.asignarVehiculoARuta(id, vehiculoId));
+    }
 }

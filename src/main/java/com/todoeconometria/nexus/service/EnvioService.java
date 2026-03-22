@@ -1,9 +1,6 @@
 // (c) 2026 Juan Marcelo Gutierrez Miranda (@TodoEconometria)
 // Proyecto Nexus Logistics - Material companion del libro
 // Curso IFCD0014: Spring Boot + Hibernate
-//
-// ESQUELETO: Implementar la logica de negocio siguiendo las instrucciones del libro.
-// Capitulo 19A: "Arquitectura de Servicios" y "Maquina de Estados del Envio"
 package com.todoeconometria.nexus.service;
 
 import com.todoeconometria.nexus.exception.BusinessRuleException;
@@ -23,8 +20,7 @@ import java.time.LocalDateTime;
 @Transactional
 public class EnvioService {
 
-    // TODO: Definir la constante TARIFA_POR_KG como BigDecimal (valor: 2.50 EUR/kg)
-    // Pista: usar new BigDecimal("2.50") para evitar problemas de precision con double
+    private static final BigDecimal TARIFA_POR_KG = new BigDecimal("2.50");
 
     private final EnvioRepository envioRepository;
     private final ClienteRepository clienteRepository;
@@ -38,33 +34,25 @@ public class EnvioService {
         this.rutaRepository = rutaRepository;
     }
 
-    /**
-     * Crea un nuevo envio asignado a un cliente existente.
-     * El costo se calcula automaticamente: pesoKg * TARIFA_POR_KG.
-     * El tracking number se genera en el constructor de Envio.
-     */
     public Envio crearEnvio(String origen, String destino,
                             BigDecimal pesoKg, Long clienteId) {
-        // TODO: Implementar creacion de envio
-        // 1. Buscar el cliente por ID (lanzar ResourceNotFoundException si no existe)
-        // 2. Crear un nuevo Envio con el constructor (origen, destino, pesoKg, cliente)
-        // 3. Calcular el costo: pesoKg.multiply(TARIFA_POR_KG)
-        // 4. Guardar y retornar el envio
-        throw new UnsupportedOperationException("TODO: Implementar crearEnvio");
+        Cliente cliente = clienteRepository.findById(clienteId)
+            .orElseThrow(() -> new ResourceNotFoundException("Cliente", "id", clienteId));
+        Envio envio = new Envio(origen, destino, pesoKg, cliente);
+        envio.setCosto(pesoKg.multiply(TARIFA_POR_KG));
+        return envioRepository.save(envio);
     }
 
     @Transactional(readOnly = true)
     public Envio obtenerPorId(Long id) {
-        // TODO: Usar findByIdConRelaciones del repositorio (JOIN FETCH)
-        // Lanzar ResourceNotFoundException si no existe
-        throw new UnsupportedOperationException("TODO: Implementar obtenerPorId");
+        return envioRepository.findByIdConRelaciones(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Envio", "id", id));
     }
 
     @Transactional(readOnly = true)
     public Envio obtenerPorTracking(String trackingNumber) {
-        // TODO: Usar findByTrackingNumber del repositorio
-        // Lanzar ResourceNotFoundException si no existe
-        throw new UnsupportedOperationException("TODO: Implementar obtenerPorTracking");
+        return envioRepository.findByTrackingNumber(trackingNumber)
+            .orElseThrow(() -> new ResourceNotFoundException("Envio", "tracking", trackingNumber));
     }
 
     @Transactional(readOnly = true)
@@ -77,59 +65,53 @@ public class EnvioService {
         return envioRepository.findByDestinoContainingIgnoreCase(destino, pageable);
     }
 
-    /**
-     * Actualiza el estado de un envio respetando la maquina de estados.
-     * Transiciones prohibidas:
-     * - ENTREGADO o DEVUELTO no pueden cambiar a ningun otro estado
-     * - EN_TRANSITO no puede retroceder a EN_ALMACEN
-     * Si el nuevo estado es ENTREGADO, asignar fechaEntrega = ahora.
-     */
     public Envio actualizarEstado(Long id, EstadoEnvio nuevoEstado) {
-        // TODO: Implementar actualizacion de estado con validaciones
-        // 1. Obtener el envio por ID
-        // 2. Validar la transicion de estado (ver metodo validarTransicionEstado)
-        // 3. Asignar el nuevo estado
-        // 4. Si es ENTREGADO, asignar fechaEntrega
-        // 5. Guardar y retornar
-        throw new UnsupportedOperationException("TODO: Implementar actualizarEstado");
+        Envio envio = obtenerPorId(id);
+        validarTransicionEstado(envio.getEstado(), nuevoEstado);
+        envio.setEstado(nuevoEstado);
+        if (nuevoEstado == EstadoEnvio.ENTREGADO) {
+            envio.setFechaEntrega(LocalDateTime.now());
+        }
+        return envioRepository.save(envio);
     }
 
-    /**
-     * Asigna un envio a una ruta existente.
-     * Restricciones:
-     * - No asignar envios ENTREGADOS o DEVUELTOS
-     * - No asignar a rutas ya completadas
-     * El envio pasa automaticamente a estado EN_TRANSITO.
-     */
     public Envio asignarARuta(Long envioId, Long rutaId) {
-        // TODO: Implementar asignacion a ruta con validaciones de negocio
-        // 1. Obtener envio y ruta
-        // 2. Validar que el envio no este ENTREGADO ni DEVUELTO
-        // 3. Validar que la ruta no este completada
-        // 4. Asignar envio a ruta: ruta.asignarEnvio(envio)
-        // 5. Cambiar estado del envio a EN_TRANSITO
-        // 6. Guardar y retornar
-        throw new UnsupportedOperationException("TODO: Implementar asignarARuta");
+        Envio envio = obtenerPorId(envioId);
+        Ruta ruta = rutaRepository.findById(rutaId)
+            .orElseThrow(() -> new ResourceNotFoundException("Ruta", "id", rutaId));
+
+        if (envio.getEstado() == EstadoEnvio.ENTREGADO ||
+            envio.getEstado() == EstadoEnvio.DEVUELTO) {
+            throw new BusinessRuleException(
+                "No se puede asignar a ruta un envio en estado " + envio.getEstado());
+        }
+        if (ruta.isCompletada()) {
+            throw new BusinessRuleException(
+                "La ruta " + ruta.getNombre() + " ya esta completada");
+        }
+
+        ruta.asignarEnvio(envio);
+        envio.setEstado(EstadoEnvio.EN_TRANSITO);
+        return envioRepository.save(envio);
     }
 
-    /**
-     * Elimina un envio. Solo se permite eliminar envios en estado REGISTRADO.
-     */
     public void eliminar(Long id) {
-        // TODO: Implementar eliminacion con restriccion de estado
-        // Solo se pueden eliminar envios en estado REGISTRADO
-        throw new UnsupportedOperationException("TODO: Implementar eliminar");
+        Envio envio = obtenerPorId(id);
+        if (envio.getEstado() != EstadoEnvio.REGISTRADO) {
+            throw new BusinessRuleException(
+                "Solo se pueden eliminar envios en estado REGISTRADO. Estado actual: " + envio.getEstado());
+        }
+        envioRepository.deleteById(id);
     }
 
-    /**
-     * Valida que la transicion de estado sea permitida.
-     * Reglas de la maquina de estados:
-     * - Estados terminales (ENTREGADO, DEVUELTO) no pueden transicionar
-     * - EN_TRANSITO no puede retroceder a EN_ALMACEN
-     */
     private void validarTransicionEstado(EstadoEnvio actual, EstadoEnvio nuevo) {
-        // TODO: Implementar validacion de transiciones
-        // Ver diagrama de estados en el Capitulo 19A del libro
-        throw new UnsupportedOperationException("TODO: Implementar validarTransicionEstado");
+        if (actual == EstadoEnvio.ENTREGADO || actual == EstadoEnvio.DEVUELTO) {
+            throw new BusinessRuleException(
+                "No se puede cambiar el estado de un envio " + actual + " a " + nuevo);
+        }
+        if (actual == EstadoEnvio.EN_TRANSITO && nuevo == EstadoEnvio.EN_ALMACEN) {
+            throw new BusinessRuleException(
+                "No se puede devolver un envio EN_TRANSITO a EN_ALMACEN");
+        }
     }
 }

@@ -1,9 +1,6 @@
 // (c) 2026 Juan Marcelo Gutierrez Miranda (@TodoEconometria)
 // Proyecto Nexus Logistics - Material companion del libro
 // Curso IFCD0014: Spring Boot + Hibernate
-//
-// ESQUELETO: Implementar gestion de rutas con asignacion de vehiculos.
-// Capitulo 19B: "Servicios de Negocio"
 package com.todoeconometria.nexus.service;
 
 import com.todoeconometria.nexus.exception.BusinessRuleException;
@@ -30,19 +27,17 @@ public class RutaService {
         this.vehiculoRepository = vehiculoRepository;
     }
 
-    /**
-     * Crea una nueva ruta. La fecha programada no puede ser anterior a hoy.
-     * Opcionalmente asigna un vehiculo.
-     */
     public Ruta crear(String nombre, String origen, String destino,
                       LocalDate fechaProgramada, Double distanciaKm, Long vehiculoId) {
-        // TODO: Implementar creacion de ruta
-        // 1. Validar que fechaProgramada no sea anterior a hoy
-        // 2. Crear Ruta con constructor (nombre, origen, destino, fechaProgramada)
-        // 3. Asignar distanciaKm
-        // 4. Si vehiculoId no es null, asignar vehiculo (ver metodo privado asignarVehiculo)
-        // 5. Guardar y retornar
-        throw new UnsupportedOperationException("TODO: Implementar crear");
+        if (fechaProgramada.isBefore(LocalDate.now())) {
+            throw new BusinessRuleException("La fecha programada no puede ser anterior a hoy");
+        }
+        Ruta ruta = new Ruta(nombre, origen, destino, fechaProgramada);
+        ruta.setDistanciaKm(distanciaKm);
+        if (vehiculoId != null) {
+            asignarVehiculo(ruta, vehiculoId);
+        }
+        return rutaRepository.save(ruta);
     }
 
     @Transactional(readOnly = true)
@@ -53,9 +48,11 @@ public class RutaService {
 
     @Transactional(readOnly = true)
     public Ruta obtenerConEnvios(Long id) {
-        // TODO: Usar findByIdConEnvios del repositorio (JOIN FETCH)
-        // Lanzar ResourceNotFoundException si retorna null
-        throw new UnsupportedOperationException("TODO: Implementar obtenerConEnvios");
+        Ruta ruta = rutaRepository.findByIdConEnvios(id);
+        if (ruta == null) {
+            throw new ResourceNotFoundException("Ruta", "id", id);
+        }
+        return ruta;
     }
 
     @Transactional(readOnly = true)
@@ -73,44 +70,47 @@ public class RutaService {
         return rutaRepository.findAll();
     }
 
-    /**
-     * Completa una ruta: marca todos los envios EN_TRANSITO como ENTREGADOS,
-     * libera el vehiculo asignado, y marca la ruta como completada.
-     * Este es el metodo mas complejo del servicio - involucra multiples entidades.
-     */
     public Ruta completar(Long id) {
-        // TODO: Implementar completar ruta (operacion transaccional compleja)
-        // 1. Obtener la ruta CON sus envios cargados (obtenerConEnvios)
-        // 2. Validar que no este ya completada
-        // 3. Iterar envios: si estado == EN_TRANSITO, cambiar a ENTREGADO + asignar fechaEntrega
-        // 4. Si tiene vehiculo asignado: marcarlo como disponible y guardarlo
-        // 5. Marcar ruta como completada
-        // 6. Guardar y retornar
-        throw new UnsupportedOperationException("TODO: Implementar completar");
+        Ruta ruta = obtenerConEnvios(id);
+        if (ruta.isCompletada()) {
+            throw new BusinessRuleException("La ruta '" + ruta.getNombre() + "' ya esta completada");
+        }
+        for (Envio envio : ruta.getEnvios()) {
+            if (envio.getEstado() == EstadoEnvio.EN_TRANSITO) {
+                envio.setEstado(EstadoEnvio.ENTREGADO);
+                envio.setFechaEntrega(LocalDateTime.now());
+            }
+        }
+        if (ruta.getVehiculo() != null) {
+            ruta.getVehiculo().setDisponible(true);
+            vehiculoRepository.save(ruta.getVehiculo());
+        }
+        ruta.setCompletada(true);
+        return rutaRepository.save(ruta);
     }
 
-    /**
-     * Asigna o reasigna un vehiculo a una ruta existente.
-     */
     public Ruta asignarVehiculoARuta(Long rutaId, Long vehiculoId) {
-        // TODO: Implementar asignacion de vehiculo a ruta
-        // 1. Obtener la ruta, validar que no este completada
-        // 2. Llamar al metodo privado asignarVehiculo
-        // 3. Guardar y retornar
-        throw new UnsupportedOperationException("TODO: Implementar asignarVehiculoARuta");
+        Ruta ruta = obtenerPorId(rutaId);
+        if (ruta.isCompletada()) {
+            throw new BusinessRuleException("No se puede modificar una ruta completada");
+        }
+        asignarVehiculo(ruta, vehiculoId);
+        return rutaRepository.save(ruta);
     }
 
-    /**
-     * Asigna un vehiculo a una ruta.
-     * Si la ruta ya tenia vehiculo, libera el anterior.
-     * Marca el nuevo vehiculo como no disponible.
-     */
     private void asignarVehiculo(Ruta ruta, Long vehiculoId) {
-        // TODO: Implementar asignacion de vehiculo
-        // 1. Buscar vehiculo por ID
-        // 2. Validar que este disponible
-        // 3. Si la ruta ya tenia vehiculo, liberar el anterior (disponible = true)
-        // 4. Asignar nuevo vehiculo a ruta, marcar como no disponible
-        throw new UnsupportedOperationException("TODO: Implementar asignarVehiculo");
+        Vehiculo vehiculo = vehiculoRepository.findById(vehiculoId)
+            .orElseThrow(() -> new ResourceNotFoundException("Vehiculo", "id", vehiculoId));
+        if (!vehiculo.isDisponible()) {
+            throw new BusinessRuleException(
+                "El vehiculo con matricula '" + vehiculo.getMatricula() + "' no esta disponible");
+        }
+        if (ruta.getVehiculo() != null) {
+            ruta.getVehiculo().setDisponible(true);
+            vehiculoRepository.save(ruta.getVehiculo());
+        }
+        ruta.setVehiculo(vehiculo);
+        vehiculo.setDisponible(false);
+        vehiculoRepository.save(vehiculo);
     }
 }

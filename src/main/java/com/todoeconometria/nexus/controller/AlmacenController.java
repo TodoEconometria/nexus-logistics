@@ -1,9 +1,6 @@
 // (c) 2026 Juan Marcelo Gutierrez Miranda (@TodoEconometria)
 // Proyecto Nexus Logistics - Material companion del libro
 // Curso IFCD0014: Spring Boot + Hibernate
-//
-// ESQUELETO: Implementar CRUD REST para almacenes.
-// Capitulo 19B: "Controladores REST Adicionales"
 package com.todoeconometria.nexus.controller;
 
 import com.todoeconometria.nexus.exception.ResourceNotFoundException;
@@ -28,20 +25,59 @@ public class AlmacenController {
         this.almacenRepository = almacenRepository;
     }
 
-    // TODO: Implementar GET /api/almacenes (listar todos)
+    @GetMapping
+    @Operation(summary = "Listar todos los almacenes")
+    public ResponseEntity<List<Almacen>> listarTodos() {
+        return ResponseEntity.ok(almacenRepository.findAll());
+    }
 
-    // TODO: Implementar GET /api/almacenes/{id} (obtener por ID)
+    @GetMapping("/{id}")
+    @Operation(summary = "Obtener almacen por ID")
+    public ResponseEntity<Almacen> obtenerPorId(@PathVariable Long id) {
+        Almacen almacen = almacenRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Almacen", "id", id));
+        return ResponseEntity.ok(almacen);
+    }
 
-    // TODO: Implementar GET /api/almacenes/ciudad/{ciudad} (filtrar por ciudad)
+    @GetMapping("/ciudad/{ciudad}")
+    @Operation(summary = "Filtrar almacenes por ciudad")
+    public ResponseEntity<List<Almacen>> filtrarPorCiudad(@PathVariable String ciudad) {
+        return ResponseEntity.ok(almacenRepository.findByCiudad(ciudad));
+    }
 
-    // TODO: Implementar GET /api/almacenes/disponibles (listar con espacio)
-    // Pista: usar findAlmacenesConEspacio() del repositorio (consulta @Query)
+    @GetMapping("/disponibles")
+    @Operation(summary = "Listar almacenes con espacio disponible")
+    public ResponseEntity<List<Almacen>> listarDisponibles() {
+        return ResponseEntity.ok(almacenRepository.findAlmacenesConEspacio());
+    }
 
-    // TODO: Implementar POST /api/almacenes (crear almacen)
-    // Usar @Valid @RequestBody, asignar id = null
+    @PostMapping
+    @Operation(summary = "Crear un nuevo almacen")
+    public ResponseEntity<Almacen> crear(@Valid @RequestBody Almacen almacen) {
+        almacen.setId(null);
+        return ResponseEntity.status(HttpStatus.CREATED).body(almacenRepository.save(almacen));
+    }
 
-    // TODO: Implementar PUT /api/almacenes/{id} (actualizar almacen)
-    // Actualizar: nombre, ciudad, direccion, capacidadMaxima
+    @PutMapping("/{id}")
+    @Operation(summary = "Actualizar un almacen existente")
+    public ResponseEntity<Almacen> actualizar(
+            @PathVariable Long id, @Valid @RequestBody Almacen datosActualizados) {
+        Almacen almacen = almacenRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Almacen", "id", id));
+        almacen.setNombre(datosActualizados.getNombre());
+        almacen.setCiudad(datosActualizados.getCiudad());
+        almacen.setDireccion(datosActualizados.getDireccion());
+        almacen.setCapacidadMaxima(datosActualizados.getCapacidadMaxima());
+        return ResponseEntity.ok(almacenRepository.save(almacen));
+    }
 
-    // TODO: Implementar DELETE /api/almacenes/{id} (eliminar almacen)
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Eliminar un almacen")
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        if (!almacenRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Almacen", "id", id);
+        }
+        almacenRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
 }

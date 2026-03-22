@@ -1,9 +1,6 @@
 // (c) 2026 Juan Marcelo Gutierrez Miranda (@TodoEconometria)
 // Proyecto Nexus Logistics - Material companion del libro
 // Curso IFCD0014: Spring Boot + Hibernate
-//
-// ESQUELETO: Implementar los endpoints REST para envios.
-// Capitulo 19A: "Capa REST - Controladores"
 package com.todoeconometria.nexus.controller;
 
 import com.todoeconometria.nexus.model.Envio;
@@ -29,27 +26,60 @@ public class EnvioController {
         this.envioService = envioService;
     }
 
-    // TODO: Implementar GET /api/envios (listar con paginacion)
-    // Pista: recibir Pageable como parametro, Spring lo resuelve automaticamente
-    // Anotar con @GetMapping y @Operation(summary = "...")
+    @GetMapping
+    @Operation(summary = "Listar todos los envios con paginacion")
+    public ResponseEntity<Page<Envio>> listarTodos(Pageable pageable) {
+        return ResponseEntity.ok(envioService.listarTodos(pageable));
+    }
 
-    // TODO: Implementar GET /api/envios/{id} (obtener por ID)
+    @GetMapping("/{id}")
+    @Operation(summary = "Obtener envio por ID")
+    public ResponseEntity<Envio> obtenerPorId(@PathVariable Long id) {
+        return ResponseEntity.ok(envioService.obtenerPorId(id));
+    }
 
-    // TODO: Implementar GET /api/envios/tracking/{trackingNumber} (buscar por tracking)
+    @GetMapping("/tracking/{trackingNumber}")
+    @Operation(summary = "Buscar envio por numero de tracking")
+    public ResponseEntity<Envio> obtenerPorTracking(@PathVariable String trackingNumber) {
+        return ResponseEntity.ok(envioService.obtenerPorTracking(trackingNumber));
+    }
 
-    // TODO: Implementar GET /api/envios/buscar?destino=X (buscar por destino con paginacion)
+    @GetMapping("/buscar")
+    @Operation(summary = "Buscar envios por destino")
+    public ResponseEntity<Page<Envio>> buscarPorDestino(
+            @RequestParam String destino, Pageable pageable) {
+        return ResponseEntity.ok(envioService.buscarPorDestino(destino, pageable));
+    }
 
-    // TODO: Implementar POST /api/envios (crear envio)
-    // Parametros: origen, destino, pesoKg (BigDecimal), clienteId (Long)
-    // Retornar ResponseEntity con HttpStatus.CREATED
+    @PostMapping
+    @Operation(summary = "Crear un nuevo envio")
+    public ResponseEntity<Envio> crear(
+            @RequestParam String origen,
+            @RequestParam String destino,
+            @RequestParam BigDecimal pesoKg,
+            @RequestParam Long clienteId) {
+        Envio nuevo = envioService.crearEnvio(origen, destino, pesoKg, clienteId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(nuevo);
+    }
 
-    // TODO: Implementar PATCH /api/envios/{id}/estado (actualizar estado)
-    // Parametro: estado (EstadoEnvio)
-    // Nota: usar @PatchMapping, no @PutMapping (actualizacion parcial)
+    @PatchMapping("/{id}/estado")
+    @Operation(summary = "Actualizar el estado de un envio")
+    public ResponseEntity<Envio> actualizarEstado(
+            @PathVariable Long id, @RequestParam EstadoEnvio estado) {
+        return ResponseEntity.ok(envioService.actualizarEstado(id, estado));
+    }
 
-    // TODO: Implementar PATCH /api/envios/{id}/ruta (asignar a ruta)
-    // Parametro: rutaId (Long)
+    @PatchMapping("/{id}/ruta")
+    @Operation(summary = "Asignar envio a una ruta")
+    public ResponseEntity<Envio> asignarARuta(
+            @PathVariable Long id, @RequestParam Long rutaId) {
+        return ResponseEntity.ok(envioService.asignarARuta(id, rutaId));
+    }
 
-    // TODO: Implementar DELETE /api/envios/{id} (eliminar envio)
-    // Retornar ResponseEntity.noContent().build() (HTTP 204)
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Eliminar un envio (solo en estado REGISTRADO)")
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        envioService.eliminar(id);
+        return ResponseEntity.noContent().build();
+    }
 }
