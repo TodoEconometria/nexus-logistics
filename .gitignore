@@ -1,0 +1,14 @@
+target/
+*.class
+.idea/
+*.iml
+.vscode/
+*.log
+application-local.properties
+venv/
+__pycache__/
+*.pyc
+.env
+*.png
+*.xlsx
+*.csv
