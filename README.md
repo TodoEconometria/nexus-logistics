@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://avatars.githubusercontent.com/u/246972497?v=4" width="120" alt="TodoEconometria" />
+  <img src="https://raw.githubusercontent.com/TodoEconometria/curso-spring-hibernate/main/docs/assets/todoeconometria_logo.png" width="160" alt="TodoEconometria" />
 </p>
 
 <h1 align="center">Nexus Logistics</h1>
