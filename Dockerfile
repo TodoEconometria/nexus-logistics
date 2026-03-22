@@ -1,5 +1,5 @@
 # Dockerfile para la aplicacion Nexus
-# Multi-stage build para reducir el tamano de la imagen final
+# Multi-stage build para reducir el tamaño de la imagen final
 
 # --- Etapa 1: Compilacion ---
 FROM maven:3.9-eclipse-temurin-21 AS build
