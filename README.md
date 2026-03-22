@@ -16,7 +16,7 @@ Sistema de gestion logistica construido con **Spring Boot 3**, **JPA/Hibernate**
 
 Proyecto companion del libro **"Arquitectura de Sistemas Enterprise: El Arquitecto en la Era de la IA"**.
 
-Compatible con la **Certificacion Profesional IFCD0014** (Nivel 4) del [SEPE](https://www.sepe.es/) — Servicio Publico de Empleo Estatal de Espana.
+Compatible con la **Certificacion Profesional IFCD0014** (Nivel 4) del [SEPE](https://www.sepe.es/) — Servicio Publico de Empleo Estatal de España.
 
 ---
 
